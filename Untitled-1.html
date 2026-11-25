@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الجميعي للمقاولات والاتصالات | نظام الإدارة المالية والموارد</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
+    }
+    .card-clean {
+      background-color: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+      transition: all 0.2s ease;
+    }
+    .card-clean:hover {
+      box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+    }
+    .nav-item.active {
+      background-color: #EFF6FF;
+      color: #1D4ED8;
+      border-right: 4px solid #2563EB;
+      font-weight: 700;
+    }
+    .nav-item:not(.active):hover {
+      background-color: #F1F5F9;
+      color: #0F172A;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row">
+
+  <!-- Sidebar -->
+  <aside class="w-full md:w-72 bg-white border-b md:border-b-0 md:border-l border-slate-200 flex-shrink-0 flex flex-col justify-between">
+    <div>
+      <!-- Brand Header -->
+      <div class="p-6 border-b border-slate-100 flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-xl shadow-sm">
+          ج
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 text-base leading-snug">الجميعي للمقاولات</h1>
+          <p class="text-xs text-slate-500 font-medium">والاتصالات • النظام المالي</p>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="p-4 space-y-1.5" id="sidebar-nav">
+        <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-slate-600 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          لوحة التحكم الرئيسية
+        </button>
+
+        <button onclick="switchTab('clients')" data-tab="clients" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-slate-600 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          الشركات العميلة
+        </button>
+
+        <button onclick="switchTab('projects')" data-tab="projects" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-slate-600 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          المشاريع
+        </button>
+
+        <button onclick="switchTab('revenues')" data-tab="revenues" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-slate-600 transition">
+          <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          الأموال الداخلة (الإيرادات)
+        </button>
+
+        <button onclick="switchTab('expenses')" data-tab="expenses" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-slate-600 transition">
+          <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          الأموال الخارجة (المصروفات)
+        </button>
+
+        <button onclick="switchTab('resources')" data-tab="resources" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-slate-600 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          الموظفون والأصول والمقاولون
+        </button>
+      </nav>
+    </div>
+
+    <div class="p-4 border-t border-slate-100 hidden md:block">
+      <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/70">
+        <p class="text-xs text-slate-500">حالة قاعدة البيانات</p>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="text-xs font-bold text-slate-700">جاهز لإدخال البيانات</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-5 md:p-8 overflow-y-auto">
+    
+    <!-- Top Header -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-200">
+      <div>
+        <h2 id="page-title" class="text-2xl font-extrabold text-slate-900">لوحة التحكم الرئيسية</h2>
+        <p id="page-subtitle" class="text-sm text-slate-500 mt-0.5">ملخص الأداء المالي والمشاريع لشركة الجميعي للمقاولات والاتصالات</p>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button onclick="openModal('revenue')" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-sm transition flex items-center gap-1.5">
+          <span>+</span> تسجيل أموال داخلة
+        </button>
+        <button onclick="openModal('expense')" class="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl shadow-sm transition flex items-center gap-1.5">
+          <span>-</span> تسجيل أموال خارجة
+        </button>
+      </div>
+    </header>
+
+    <!-- TAB 1: DASHBOARD -->
+    <section id="tab-dashboard" class="space-y-6">
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="card-clean rounded-2xl p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold text-slate-500">إجمالي الأموال الداخلة</span>
+            <span class="p-2 bg-emerald-50 text-emerald-600 rounded-lg font-bold text-xs">revenues</span>
+          </div>
+          <p id="kpi-revenues" class="text-2xl font-extrabold text-slate-900 mt-3">0 ج.م</p>
+          <p class="text-xs text-emerald-600 font-medium mt-1">دفعات محصلة من الشركات العميلة</p>
+        </div>
+
+        <div class="card-clean rounded-2xl p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold text-slate-500">إجمالي الأموال الخارجة</span>
+            <span class="p-2 bg-rose-50 text-rose-600 rounded-lg font-bold text-xs">expenses</span>
+          </div>
+          <p id="kpi-expenses" class="text-2xl font-extrabold text-slate-900 mt-3">0 ج.م</p>
+          <p class="text-xs text-rose-600 font-medium mt-1">مواقع، رواتب، أصول، ومقاولين</p>
+        </div>
+
+        <div class="card-clean rounded-2xl p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold text-slate-500">صافي الربح</span>
+            <span class="p-2 bg-blue-50 text-blue-600 rounded-lg font-bold text-xs">الرصيد</span>
+          </div>
+          <p id="kpi-profit" class="text-2xl font-extrabold text-blue-700 mt-3">0 ج.م</p>
+          <p class="text-xs text-slate-500 font-medium mt-1">الفرق بين الإيرادات والمصروفات</p>
+        </div>
+
+        <div class="card-clean rounded-2xl p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold text-slate-500">المشاريع المسجلة</span>
+            <span class="p-2 bg-amber-50 text-amber-600 rounded-lg font-bold text-xs">projects</span>
+          </div>
+          <p id="kpi-projects" class="text-2xl font-extrabold text-slate-900 mt-3">0</p>
+          <p id="kpi-clients-count" class="text-xs text-slate-500 font-medium mt-1">موزعة على 0 شركات عميلة</p>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="card-clean rounded-2xl p-6 lg:col-span-2">
+          <h3 class="font-bold text-slate-900 mb-4">مقارنة الإيرادات والمصروفات حسب المشروع</h3>
+          <div class="h-72">
+            <canvas id="projectsChart"></canvas>
+          </div>
+        </div>
+        <div class="card-clean rounded-2xl p-6">
+          <h3 class="font-bold text-slate-900 mb-4">توزيع الأموال الخارجة</h3>
+          <div class="h-72">
+            <canvas id="expensesChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: CLIENTS -->
+    <section id="tab-clients" class="hidden space-y-5">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-lg text-slate-800">قائمة الشركات العميلة (clients)</h3>
+        <button onclick="openModal('client')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-sm transition">+ إضافة شركة عميلة</button>
+      </div>
+      <div class="card-clean rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+              <tr>
+                <th class="py-3.5 px-5">#</th>
+                <th class="py-3.5 px-5">اسم الشركة العميلة</th>
+                <th class="py-3.5 px-5">عدد المشاريع</th>
+                <th class="py-3.5 px-5">إجمالي المدفوعات</th>
+                <th class="py-3.5 px-5">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="clients-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: PROJECTS -->
+    <section id="tab-projects" class="hidden space-y-5">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-lg text-slate-800">إدارة المشاريع (projects)</h3>
+        <button onclick="openModal('project')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-sm transition">+ إضافة مشروع جديد</button>
+      </div>
+      <div class="card-clean rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+              <tr>
+                <th class="py-3.5 px-5">اسم المشروع</th>
+                <th class="py-3.5 px-5">الشركة العميلة</th>
+                <th class="py-3.5 px-5">قيمة العقد</th>
+                <th class="py-3.5 px-5">تاريخ البدء</th>
+                <th class="py-3.5 px-5">تاريخ التسليم</th>
+                <th class="py-3.5 px-5">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="projects-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: REVENUES -->
+    <section id="tab-revenues" class="hidden space-y-5">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-lg text-slate-800">سجل الأموال الداخلة (revenues)</h3>
+        <button onclick="openModal('revenue')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-sm transition">+ إضافة دفعة واردة</button>
+      </div>
+      <div class="card-clean rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+              <tr>
+                <th class="py-3.5 px-5">بيان الدفعة</th>
+                <th class="py-3.5 px-5">الشركة العميلة</th>
+                <th class="py-3.5 px-5">المشروع</th>
+                <th class="py-3.5 px-5">التصنيف</th>
+                <th class="py-3.5 px-5">المبلغ</th>
+                <th class="py-3.5 px-5">التاريخ</th>
+                <th class="py-3.5 px-5">الحالة</th>
+                <th class="py-3.5 px-5">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="revenues-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: EXPENSES -->
+    <section id="tab-expenses" class="hidden space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h3 class="font-bold text-lg text-slate-800">سجل الأموال الخارجة (expenses)</h3>
+        <div class="flex items-center gap-2">
+          <select id="expense-category-filter" onchange="renderExpenses()" class="bg-white border border-slate-300 text-slate-700 text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-blue-500">
+            <option value="all">كل البنود</option>
+            <option value="مصاريف المواقع">مصاريف المواقع</option>
+            <option value="الرواتب">الرواتب</option>
+            <option value="الأصول المستهلكة">الأصول المستهلكة</option>
+            <option value="المقاولون الخارجيون">المقاولون الخارجيون</option>
+          </select>
+          <button onclick="openModal('expense')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl shadow-sm transition">+ إضافة مصروف</button>
+        </div>
+      </div>
+      <div class="card-clean rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+              <tr>
+                <th class="py-3.5 px-5">بيان المصروف</th>
+                <th class="py-3.5 px-5">البند / الفئة</th>
+                <th class="py-3.5 px-5">المشروع المرتبط</th>
+                <th class="py-3.5 px-5">المبلغ</th>
+                <th class="py-3.5 px-5">التاريخ</th>
+                <th class="py-3.5 px-5">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="expenses-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: RESOURCES (Employees, Assets, Contractors) -->
+    <section id="tab-resources" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Employees -->
+        <div class="card-clean rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-bold text-slate-900">الموظفون (employees)</h3>
+            <button onclick="openModal('employee')" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-lg transition">+ موظف</button>
+          </div>
+          <div id="employees-list" class="space-y-2.5"></div>
+        </div>
+
+        <!-- Assets -->
+        <div class="card-clean rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-bold text-slate-900">الأصول والمعدات (assets)</h3>
+            <button onclick="openModal('asset')" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold px-3 py-1.5 rounded-lg transition">+ أصل</button>
+          </div>
+          <div id="assets-list" class="space-y-2.5"></div>
+        </div>
+
+        <!-- Contractors -->
+        <div class="card-clean rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-bold text-slate-900">المقاولون الخارجيون (contractors)</h3>
+            <button onclick="openModal('contractor')" class="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold px-3 py-1.5 rounded-lg transition">+ مقاول</button>
+          </div>
+          <div id="contractors-list" class="space-y-2.5"></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Universal Modal -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+      <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+        <h3 id="modal-title" class="text-lg font-bold text-slate-900">إضافة جديد</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+      </div>
+      <form id="modal-form" onsubmit="handleFormSubmit(event)" class="space-y-4"></form>
+    </div>
+  </div>
+
+  <script>
+    // Empty State (No Pre-filled Data)
+    let state = {
+      clients: [],
+      projects: [],
+      revenues: [],
+      expenses: [],
+      employees: [],
+      assets: [],
+      contractors: []
+    };
+
+    let currentModalType = null;
+    let editingId = null;
+    let projectsChartInstance = null;
+    let expensesChartInstance = null;
+
+    const formatCurrency = (num) => Number(num || 0).toLocaleString('ar-EG') + ' ج.م';
+
+    function switchTab(tabId) {
+      document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+
+      const titles = {
+        dashboard: ['لوحة التحكم الرئيسية', 'ملخص الأداء المالي والمشاريع لشركة الجميعي للمقاولات والاتصالات'],
+        clients: ['الشركات العميلة', 'إدارة بيانات الجهات المتعاقدة وربطها بالمشاريع'],
+        projects: ['المشاريع', 'متابعة عقود المقاولات والاتصالات وتواريخ التنفيذ'],
+        revenues: ['الأموال الداخلة', 'سجل الدفعات والمستخلصات الواردة من العملاء'],
+        expenses: ['الأموال الخارجة', 'متابعة مصاريف المواقع والرواتب والأصول والمقاولين'],
+        resources: ['الموارد البشرية والأصول والمقاولون', 'قاعدة بيانات الموظفين والمعدات ومقاولي الباطن']
+      };
+      document.getElementById('page-title').textContent = titles[tabId][0];
+      document.getElementById('page-subtitle').textContent = titles[tabId][1];
+    }
+
+    function renderAll() {
+      renderKPIs();
+      renderClients();
+      renderProjects();
+      renderRevenues();
+      renderExpenses();
+      renderResources();
+      renderCharts();
+    }
+
+    function renderKPIs() {
+      const totalRev = state.revenues.reduce((sum, r) => sum + Number(r.amount), 0);
+      const totalExp = state.expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+      const profit = totalRev - totalExp;
+
+      document.getElementById('kpi-revenues').textContent = formatCurrency(totalRev);
+      document.getElementById('kpi-expenses').textContent = formatCurrency(totalExp);
+      document.getElementById('kpi-profit').textContent = formatCurrency(profit);
+      document.getElementById('kpi-projects').textContent = state.projects.length;
+      document.getElementById('kpi-clients-count').textContent = `موزعة على ${state.clients.length} شركات عميلة`;
+    }
+
+    function renderClients() {
+      const tbody = document.getElementById('clients-table-body');
+      if (state.clients.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400">لا توجد شركات عميلة مسجلة حالياً</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = state.clients.map((c, idx) => {
+        const projCount = state.projects.filter(p => p.client_id == c.id).length;
+        const paid = state.revenues.filter(r => r.client_id == c.id).reduce((s, r) => s + Number(r.amount), 0);
+        return `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="py-3.5 px-5 font-semibold text-slate-500">${idx + 1}</td>
+            <td class="py-3.5 px-5 font-bold text-slate-900">${c.name}</td>
+            <td class="py-3.5 px-5"><span class="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold">${projCount} مشاريع</span></td>
+            <td class="py-3.5 px-5 font-bold text-emerald-600">${formatCurrency(paid)}</td>
+            <td class="py-3.5 px-5 flex gap-2">
+              <button onclick="openModal('client', ${c.id})" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold">تعديل</button>
+              <button onclick="deleteItem('clients', ${c.id})" class="text-xs px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-semibold">حذف</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderProjects() {
+      const tbody = document.getElementById('projects-table-body');
+      if (state.projects.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">لا توجد مشاريع مسجلة حالياً</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = state.projects.map(p => {
+        const client = state.clients.find(c => c.id == p.client_id);
+        return `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="py-3.5 px-5 font-bold text-slate-900">${p.project_name}</td>
+            <td class="py-3.5 px-5 text-slate-600 font-medium">${client ? client.name : '-'}</td>
+            <td class="py-3.5 px-5 font-bold text-blue-700">${formatCurrency(p.budget)}</td>
+            <td class="py-3.5 px-5 text-slate-500">${p.project_date || '-'}</td>
+            <td class="py-3.5 px-5 text-slate-500">${p.smion_date || '-'}</td>
+            <td class="py-3.5 px-5">
+              <button onclick="deleteItem('projects', ${p.id})" class="text-xs px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-semibold">حذف</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderRevenues() {
+      const tbody = document.getElementById('revenues-table-body');
+      if (state.revenues.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">لا توجد أموال داخلة مسجلة حالياً</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = state.revenues.map(r => {
+        const client = state.clients.find(c => c.id == r.client_id);
+        const project = state.projects.find(p => p.id == r.project_id);
+        return `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="py-3.5 px-5 font-bold text-slate-900">${r.name}</td>
+            <td class="py-3.5 px-5 text-slate-600">${client ? client.name : '-'}</td>
+            <td class="py-3.5 px-5 text-slate-600">${project ? project.project_name : '-'}</td>
+            <td class="py-3.5 px-5"><span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold">${r.category || 'دفعة'}</span></td>
+            <td class="py-3.5 px-5 font-bold text-emerald-600">${formatCurrency(r.amount)}</td>
+            <td class="py-3.5 px-5 text-slate-500">${r.date || '-'}</td>
+            <td class="py-3.5 px-5"><span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold">${r.status || 'محصل'}</span></td>
+            <td class="py-3.5 px-5">
+              <button onclick="deleteItem('revenues', ${r.id})" class="text-xs px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-semibold">حذف</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderExpenses() {
+      const tbody = document.getElementById('expenses-table-body');
+      const filter = document.getElementById('expense-category-filter').value;
+      const filtered = filter === 'all' ? state.expenses : state.expenses.filter(e => e.category === filter);
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">لا توجد مصروفات مسجلة حالياً</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = filtered.map(e => {
+        const project = state.projects.find(p => p.id == e.project_id);
+        return `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="py-3.5 px-5 font-bold text-slate-900">${e.name}</td>
+            <td class="py-3.5 px-5"><span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg text-xs font-bold">${e.category}</span></td>
+            <td class="py-3.5 px-5 text-slate-600">${project ? project.project_name : 'مصروف عام'}</td>
+            <td class="py-3.5 px-5 font-bold text-rose-600">${formatCurrency(e.amount)}</td>
+            <td class="py-3.5 px-5 text-slate-500">${e.date || '-'}</td>
+            <td class="py-3.5 px-5">
+              <button onclick="deleteItem('expenses', ${e.id})" class="text-xs px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-semibold">حذف</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderResources() {
+      // Employees
+      const empEl = document.getElementById('employees-list');
+      empEl.innerHTML = state.employees.length ? state.employees.map(emp => `
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-center gap-2">
+          <div>
+            <p class="font-bold text-slate-800 text-sm">${emp.name}</p>
+            <p class="text-xs text-slate-500">${emp.role || 'موظف'}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg">${formatCurrency(emp.salary)}</span>
+            <button onclick="deleteItem('employees', ${emp.id})" title="حذف" class="text-xs px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold transition">حذف</button>
+          </div>
+        </div>
+      `).join('') : `<p class="text-xs text-slate-400 text-center py-6">لا يوجد موظفون مسجلون</p>`;
+
+      // Assets
+      const assetEl = document.getElementById('assets-list');
+      assetEl.innerHTML = state.assets.length ? state.assets.map(a => `
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-center gap-2">
+          <div>
+            <p class="font-bold text-slate-800 text-sm">${a.name}</p>
+            <p class="text-xs text-slate-500">${a.category || 'معدات'}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg">${formatCurrency(a.cost)}</span>
+            <button onclick="deleteItem('assets', ${a.id})" title="حذف" class="text-xs px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold transition">حذف</button>
+          </div>
+        </div>
+      `).join('') : `<p class="text-xs text-slate-400 text-center py-6">لا توجد أصول مسجلة</p>`;
+
+      // Contractors
+      const contEl = document.getElementById('contractors-list');
+      contEl.innerHTML = state.contractors.length ? state.contractors.map(c => {
+        const proj = state.projects.find(p => p.id == c.project_id);
+        return `
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-center gap-2">
+            <div>
+              <p class="font-bold text-slate-800 text-sm">${c.name}</p>
+              <p class="text-xs text-slate-500">${c.category || 'مقاول باطن'} • ${proj ? proj.project_name : 'عام'}</p>
+            </div>
+            <button onclick="deleteItem('contractors', ${c.id})" title="حذف" class="text-xs px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold transition">حذف</button>
+          </div>
+        `;
+      }).join('') : `<p class="text-xs text-slate-400 text-center py-6">لا يوجد مقاولون مسجلون</p>`;
+    }
+
+    function renderCharts() {
+      const ctx1 = document.getElementById('projectsChart').getContext('2d');
+      const ctx2 = document.getElementById('expensesChart').getContext('2d');
+
+      if (projectsChartInstance) projectsChartInstance.destroy();
+      if (expensesChartInstance) expensesChartInstance.destroy();
+
+      const projectLabels = state.projects.length ? state.projects.map(p => p.project_name) : ['لا توجد مشاريع'];
+      const projectRevData = state.projects.length ? state.projects.map(p => state.revenues.filter(r => r.project_id == p.id).reduce((s, r) => s + Number(r.amount), 0)) : [0];
+      const projectExpData = state.projects.length ? state.projects.map(p => state.expenses.filter(e => e.project_id == p.id).reduce((s, e) => s + Number(e.amount), 0)) : [0];
+
+      projectsChartInstance = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: projectLabels,
+          datasets: [
+            { label: 'الأموال الداخلة', data: projectRevData, backgroundColor: '#10B981', borderRadius: 6 },
+            { label: 'الأموال الخارجة', data: projectExpData, backgroundColor: '#F43F5E', borderRadius: 6 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { font: { family: 'Cairo' } } } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#F1F5F9' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+
+      const categories = ['مصاريف المواقع', 'الرواتب', 'الأصول المستهلكة', 'المقاولون الخارجيون'];
+      const catTotals = categories.map(cat => state.expenses.filter(e => e.category === cat).reduce((s, e) => s + Number(e.amount), 0));
+      const hasExpenses = catTotals.some(v => v > 0);
+
+      expensesChartInstance = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: hasExpenses ? categories : ['لا توجد بيانات'],
+          datasets: [{
+            data: hasExpenses ? catTotals : [1],
+            backgroundColor: hasExpenses ? ['#3B82F6', '#8B5CF6', '#F59E0B', '#EC4899'] : ['#E2E8F0'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } } }
+        }
+      });
+    }
+
+    function openModal(type, id = null) {
+      currentModalType = type;
+      editingId = id;
+      const form = document.getElementById('modal-form');
+      const title = document.getElementById('modal-title');
+      const clientOptions = state.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      const projectOptions = state.projects.map(p => `<option value="${p.id}">${p.project_name}</option>`).join('');
+
+      if (type === 'client') {
+        const item = id ? state.clients.find(c => c.id === id) : null;
+        title.textContent = item ? 'تعديل الشركة العميلة' : 'إضافة شركة عميلة';
+        form.innerHTML = `
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">اسم الشركة العميلة</label>
+            <input type="text" name="name" value="${item ? item.name : ''}" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-blue-500">
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm">حفظ</button>
+        `;
+      } else if (type === 'project') {
+        title.textContent = 'إضافة مشروع جديد';
+        form.innerHTML = `
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">اسم المشروع</label>
+            <input type="text" name="project_name" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">الشركة العميلة</label>
+            <select name="client_id" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+              <option value="">اختر الشركة العميلة...</option>
+              ${clientOptions}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">قيمة العقد (ج.م)</label>
+            <input type="number" name="budget" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ البدء</label>
+              <input type="date" name="project_date" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ التسليم</label>
+              <input type="date" name="smion_date" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm">
+            </div>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm">إضافة المشروع</button>
+        `;
+      } else if (type === 'revenue') {
+        title.textContent = 'تسجيل أموال داخلة';
+        form.innerHTML = `
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">بيان الدفعة</label>
+            <input type="text" name="name" placeholder="مثال: دفعة مقدمة / مستخلص رقم 1" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">الشركة العميلة</label>
+              <select name="client_id" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+                <option value="">اختر العميل...</option>
+                ${clientOptions}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">المشروع</label>
+              <select name="project_id" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+                <option value="">اختر المشروع...</option>
+                ${projectOptions}
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">المبلغ (ج.م)</label>
+              <input type="number" name="amount" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">التاريخ</label>
+              <input type="date" name="date" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+            </div>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm">حفظ الإيراد</button>
+        `;
+      } else if (type === 'expense') {
+        title.textContent = 'تسجيل أموال خارجة';
+        form.innerHTML = `
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">بيان المصروف</label>
+            <input type="text" name="name" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">بند المصروف</label>
+            <select name="category" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+              <option value="مصاريف المواقع">مصاريف المواقع</option>
+              <option value="الرواتب">الرواتب</option>
+              <option value="الأصول المستهلكة">الأصول المستهلكة</option>
+              <option value="المقاولون الخارجيون">المقاولون الخارجيون</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">المشروع المرتبط (اختياري)</label>
+            <select name="project_id" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+              <option value="">مصروف عام للشركة</option>
+              ${projectOptions}
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">المبلغ (ج.م)</label>
+              <input type="number" name="amount" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">التاريخ</label>
+              <input type="date" name="date" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+            </div>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-sm">حفظ المصروف</button>
+        `;
+      } else if (type === 'employee') {
+        title.textContent = 'إضافة موظف';
+        form.innerHTML = `
+          <div><label class="block text-xs font-bold text-slate-700 mb-1">اسم الموظف</label><input type="text" name="name" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm"></div>
+          <div><label class="block text-xs font-bold text-slate-700 mb-1">المسمى الوظيفي</label><input type="text" name="role" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm"></div>
+          <div><label class="block text-xs font-bold text-slate-700 mb-1">الراتب الشهري (ج.م)</label><input type="number" name="salary" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm"></div>
+          <button type="submit" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl text-sm">إضافة</button>
+        `;
+      } else if (type === 'asset') {
+        title.textContent = 'إضافة أصل / معدة';
+        form.innerHTML = `
+          <div><label class="block text-xs font-bold text-slate-700 mb-1">اسم الأصل أو المعدة</label><input type="text" name="name" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm"></div>
+          <div><label class="block text-xs font-bold text-slate-700 mb-1">التصنيف</label><input type="text" name="category" placeholder="معدات حفر / سيارات / أجهزة" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm"></div>
+          <div><label class="block text-xs font-bold text-slate-700 mb-1">القيمة / التكلفة (ج.م)</label><input type="number" name="cost" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm"></div>
+          <button type="submit" class="w-full py-2.5 bg-amber-600 text-white font-bold rounded-xl text-sm">إضافة</button>
+        `;
+      } else if (type === 'contractor') {
+        title.textContent = 'إضافة مقاول خارجي';
+        form.innerHTML = `
+          <div><label class="block text-xs font-bold text-slate-700 mb-1">اسم المقاول</label><input type="text" name="name" required class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm"></div>
+          <div><label class="block text-xs font-bold text-slate-700 mb-1">التخصص</label><input type="text" name="category" placeholder="أعمال مدنية / فايبر / كهرباء" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm"></div>
+          <div><label class="block text-xs font-bold text-slate-700 mb-1">المشروع</label><select name="project_id" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm"><option value="">اختر المشروع...</option>${projectOptions}</select></div>
+          <button type="submit" class="w-full py-2.5 bg-purple-600 text-white font-bold rounded-xl text-sm">إضافة</button>
+        `;
+      }
+
+      document.getElementById('modal-backdrop').classList.remove('hidden');
+      document.getElementById('modal-backdrop').classList.add('flex');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.add('hidden');
+      document.getElementById('modal-backdrop').classList.remove('flex');
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+
+      if (currentModalType === 'client') {
+        if (editingId) {
+          const item = state.clients.find(c => c.id === editingId);
+          if (item) item.name = data.name;
+        } else {
+          state.clients.push({ id: Date.now(), name: data.name });
+        }
+      } else if (currentModalType === 'project') {
+        state.projects.push({ id: Date.now(), ...data });
+      } else if (currentModalType === 'revenue') {
+        state.revenues.push({ id: Date.now(), status: 'محصل', ...data });
+      } else if (currentModalType === 'expense') {
+        state.expenses.push({ id: Date.now(), ...data });
+      } else if (currentModalType === 'employee') {
+        state.employees.push({ id: Date.now(), ...data });
+      } else if (currentModalType === 'asset') {
+        state.assets.push({ id: Date.now(), ...data });
+      } else if (currentModalType === 'contractor') {
+        state.contractors.push({ id: Date.now(), ...data });
+      }
+
+      closeModal();
+      renderAll();
+    }
+
+    function deleteItem(collection, id) {
+      state[collection] = state[collection].filter(item => item.id !== id);
+      renderAll();
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
