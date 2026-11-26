@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الجميعي للمقاولات والاتصالات | نظام الإدارة المالية والموارد</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{font-family:Cairo,sans-serif;background:#F8FAFC;color:#0F172A}
+.card{background:#fff;border:1px solid #E2E8F0;box-shadow:0 1px 3px rgba(15,23,42,.04)}
+.nav.active{background:#EFF6FF;color:#1D4ED8;border-right:4px solid #2563EB;font-weight:700}
+.nav:not(.active):hover{background:#F1F5F9;color:#0F172A}
+.in{width:100%;border:1px solid #CBD5E1;border-radius:.75rem;padding:.5rem .875rem;font-size:.875rem;background:#fff}
+.in:focus{outline:none;border-color:#3B82F6}
+</style>
+</head>
+<body>
+
+<div id="login" class="min-h-screen flex items-center justify-center p-4">
+  <form onsubmit="login(event)" class="card rounded-2xl p-8 w-full max-w-sm space-y-4">
+    <div class="flex items-center gap-3.5">
+      <div class="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-xl">ج</div>
+      <div><h1 class="font-bold text-base">الجميعي للمقاولات</h1><p class="text-xs text-slate-500">والاتصالات • النظام المالي</p></div>
+    </div>
+    <input name="u" placeholder="اسم المستخدم" required class="in" autocomplete="username">
+    <input name="p" type="password" placeholder="كلمة المرور" required class="in" autocomplete="current-password">
+    <p id="lerr" class="hidden text-sm text-rose-600">اسم المستخدم أو كلمة المرور غير صحيحة</p>
+    <button class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm">دخول</button>
+  </form>
+</div>
+
+<div id="app" class="hidden min-h-screen flex flex-col md:flex-row">
+  <aside class="w-full md:w-72 bg-white border-b md:border-b-0 md:border-l border-slate-200 flex-shrink-0 flex flex-col justify-between">
+    <div>
+      <div class="p-6 border-b border-slate-100 flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-xl">ج</div>
+        <div><h1 class="font-bold text-base">الجميعي للمقاولات</h1><p class="text-xs text-slate-500">والاتصالات • النظام المالي</p></div>
+      </div>
+      <nav id="nav" class="p-4 space-y-1.5"></nav>
+    </div>
+    <div class="p-4 border-t border-slate-100">
+      <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
+        <p id="uname" class="text-sm font-bold"></p>
+        <p id="urole" class="text-xs text-slate-500"></p>
+        <button onclick="logout()" class="mt-2 text-xs text-rose-600 font-bold">تسجيل الخروج</button>
+      </div>
+    </div>
+  </aside>
+  <main class="flex-1 p-5 md:p-8 overflow-y-auto">
+    <h2 id="ptitle" class="text-2xl font-extrabold pb-5 mb-6 border-b border-slate-200"></h2>
+    <div id="view"></div>
+  </main>
+</div>
+
+<div id="modal" class="fixed inset-0 bg-slate-900/40 hidden items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between pb-3 mb-4 border-b border-slate-100">
+      <h3 id="mt" class="text-lg font-bold"></h3>
+      <button onclick="closeM()" class="text-xl text-slate-400 hover:text-slate-700">&times;</button>
+    </div>
+    <form id="mf" onsubmit="sub(event)" class="space-y-3"></form>
+  </div>
+</div>
+<div id="toast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-4 py-2 rounded-xl z-50"></div>
+
+<script>
+/* ===== طبقة البيانات: localStorage مؤقتاً. استبدل load/save بـ Supabase لاحقاً ===== */
+const KEY='jm_erp_v1';
+const seed={clients:[],projects:[],revenues:[],expenses:[],employees:[],assets:[],contractors:[],users:[
+ {id:1,name:'المدير العام',username:'admin',password:'admin123',role:'admin'},
+ {id:2,name:'المحاسب',username:'acc',password:'acc123',role:'acc'},
+ {id:3,name:'مشرف الموقع',username:'site',password:'site123',role:'site',project_id:''}]};
+let db;try{db=JSON.parse(localStorage.getItem(KEY))||seed}catch(e){db=seed}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}};
+
+/* ===== أدوات ===== */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>Number(n||0).toLocaleString('ar-EG')+' ج.م';
+const sum=(a,k='amount')=>a.reduce((s,r)=>s+Number(r[k]||0),0);
+const nm=(c,id)=>{const x=db[c].find(r=>r.id==id);return x?esc(x.name):'-'};
+const okE=e=>e.status!=='قيد المراجعة';
+const btn=(f,t,c)=>`<button onclick="${f}" class="text-xs px-2.5 py-1 rounded-lg font-semibold ${c}">${t}</button>`;
+const bdg=(t,c)=>`<span class="px-2.5 py-1 rounded-lg text-xs font-bold ${c}">${esc(t)}</span>`;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),2500)}
+
+/* ===== الأدوار والصلاحيات (w=كامل، r=عرض، a=إضافة مصروفات فقط) ===== */
+const RL={admin:'المدير العام',acc:'المحاسب',site:'مشرف الموقع'};
+const PERM={acc:{clients:'w',projects:'r',revenues:'w',expenses:'w',employees:'w',assets:'w',contractors:'w'},site:{expenses:'a',contractors:'r'}};
+const lvl=e=>U.role==='admin'?'w':(PERM[U.role][e]||'');
+const TABS=[['dashboard','لوحة التحكم الرئيسية',['admin','acc','site']],['clients','الشركات العميلة',['admin','acc']],['projects','المشاريع',['admin','acc']],['revenues','الأموال الداخلة (الإيرادات)',['admin','acc']],['expenses','الأموال الخارجة (المصروفات)',['admin','acc','site']],['resources','الموظفون والأصول والمقاولون',['admin','acc','site']],['users','المستخدمون والصلاحيات',['admin']]];
+const siteScoped=e=>U.role==='site'&&(e==='expenses'||e==='contractors');
+const rows=e=>siteScoped(e)?db[e].filter(x=>x.project_id==U.project_id):db[e];
+const CATS=['مصاريف المواقع','الرواتب','الأصول المستهلكة','المقاولون الخارجيون'];
+const DEP={clients:[['projects','client_id'],['revenues','client_id']],projects:[['revenues','project_id'],['expenses','project_id'],['contractors','project_id'],['users','project_id']]};
+
+/* ===== تعريف الكيانات: f=الحقول، c=الأعمدة ===== */
+const E={
+clients:{t:'شركة عميلة',n:'الشركات العميلة',f:[['name','اسم الشركة العميلة','text']],
+ c:[['الشركة',r=>`<b>${esc(r.name)}</b>`],['عدد المشاريع',r=>bdg(db.projects.filter(p=>p.client_id==r.id).length+' مشاريع','bg-blue-50 text-blue-700')],['إجمالي المدفوعات',r=>`<b class="text-emerald-600">${money(sum(db.revenues.filter(x=>x.client_id==r.id&&x.status!=='مستحق')))}</b>`]]},
+projects:{t:'مشروع',n:'إدارة المشاريع',f:[['name','اسم المشروع','text'],['client_id','الشركة العميلة','sel','clients'],['value','قيمة العقد (ج.م)','number'],['start','تاريخ البدء','date'],['end','تاريخ التسليم','date']],
+ c:[['المشروع',r=>`<b>${esc(r.name)}</b>`],['الشركة العميلة',r=>nm('clients',r.client_id)],['قيمة العقد',r=>`<b class="text-blue-700">${money(r.value)}</b>`],['البدء',r=>esc(r.start||'-')],['التسليم',r=>esc(r.end||'-')]]},
+revenues:{t:'دفعة واردة',n:'سجل الأموال الداخلة',f:[['name','بيان الدفعة','text'],['client_id','الشركة العميلة','sel','clients'],['project_id','المشروع','sel','projects'],['category','التصنيف','list',['دفعة مقدمة','مستخلص','دفعة نهائية','أخرى']],['amount','المبلغ (ج.م)','number'],['date','التاريخ','date'],['status','الحالة','list',['محصل','مستحق']]],
+ c:[['البيان',r=>`<b>${esc(r.name)}</b>`],['الشركة',r=>nm('clients',r.client_id)],['المشروع',r=>nm('projects',r.project_id)],['التصنيف',r=>bdg(r.category,'bg-slate-100 text-slate-700')],['المبلغ',r=>`<b class="text-emerald-600">${money(r.amount)}</b>`],['التاريخ',r=>esc(r.date)],['الحالة',r=>bdg(r.status,r.status==='محصل'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700')]]},
+expenses:{t:'مصروف',n:'سجل الأموال الخارجة',f:[['name','بيان المصروف','text'],['category','البند','list',CATS],['project_id','المشروع المرتبط','sel0','projects'],['amount','المبلغ (ج.م)','number'],['date','التاريخ','date']],
+ c:[['البيان',r=>`<b>${esc(r.name)}</b>`],['البند',r=>bdg(r.category,'bg-rose-50 text-rose-700')],['المشروع',r=>r.project_id?nm('projects',r.project_id):'مصروف عام'],['المبلغ',r=>`<b class="text-rose-600">${money(r.amount)}</b>`],['التاريخ',r=>esc(r.date)],['الحالة',r=>bdg(okE(r)?'معتمد':'قيد المراجعة',okE(r)?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700')]]},
+employees:{t:'موظف',n:'الموظفون',f:[['name','اسم الموظف','text'],['role','المسمى الوظيفي','text'],['salary','الراتب الشهري (ج.م)','number']],
+ c:[['الاسم',r=>`<b>${esc(r.name)}</b>`],['الوظيفة',r=>esc(r.role)],['الراتب',r=>bdg(money(r.salary),'bg-blue-50 text-blue-700')]]},
+assets:{t:'أصل',n:'الأصول والمعدات',f:[['name','اسم الأصل أو المعدة','text'],['category','التصنيف','text'],['cost','القيمة (ج.م)','number']],
+ c:[['الأصل',r=>`<b>${esc(r.name)}</b>`],['التصنيف',r=>esc(r.category)],['القيمة',r=>bdg(money(r.cost),'bg-amber-50 text-amber-700')]]},
+contractors:{t:'مقاول',n:'المقاولون الخارجيون',f:[['name','اسم المقاول','text'],['category','التخصص','text'],['project_id','المشروع','sel0','projects']],
+ c:[['المقاول',r=>`<b>${esc(r.name)}</b>`],['التخصص',r=>esc(r.category)],['المشروع',r=>r.project_id?nm('projects',r.project_id):'عام']]},
+users:{t:'مستخدم',n:'المستخدمون والصلاحيات',f:[['name','الاسم','text'],['username','اسم المستخدم','text'],['password','كلمة المرور','text'],['role','الدور','list',['admin|المدير العام','acc|المحاسب','site|مشرف الموقع']],['project_id','المشروع (لمشرف الموقع)','sel0','projects']],
+ c:[['الاسم',r=>`<b>${esc(r.name)}</b>`],['المستخدم',r=>esc(r.username)],['الدور',r=>bdg(RL[r.role],'bg-purple-50 text-purple-700')],['المشروع',r=>r.project_id?nm('projects',r.project_id):'-']]}
+};
+
+/* ===== الدخول والتنقل ===== */
+let U=null,cur='dashboard',ent=null,eid=null,ef='all',ch=[];
+function login(ev){ev.preventDefault();const f=new FormData(ev.target);
+ const u=db.users.find(x=>x.username===f.get('u')&&x.password===f.get('p'));
+ if(!u){$('lerr').classList.remove('hidden');return}
+ U=u;try{sessionStorage.setItem('jm_u',u.id)}catch(e){}boot()}
+function logout(){U=null;try{sessionStorage.removeItem('jm_u')}catch(e){}$('app').classList.add('hidden');$('login').classList.remove('hidden')}
+function boot(){
+ $('login').classList.add('hidden');$('app').classList.remove('hidden');
+ $('uname').textContent=U.name;$('urole').textContent=RL[U.role];
+ $('nav').innerHTML=TABS.filter(t=>t[2].includes(U.role)).map(t=>`<button data-t="${t[0]}" onclick="go('${t[0]}')" class="nav w-full text-right px-4 py-3 rounded-xl text-sm text-slate-600 transition">${tl(t)}</button>`).join('');
+ go('dashboard')}
+const tl=t=>t[0]==='resources'&&U.role==='site'?'مقاولو الموقع':t[1];
+function go(t){
+ cur=t;document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
+ $('ptitle').textContent=tl(TABS.find(x=>x[0]===t));
+ ch.forEach(c=>c.destroy());ch=[];const v=$('view');
+ if(t==='dashboard'){v.innerHTML=dash();charts()}
+ else if(t==='resources')v.innerHTML=['employees','assets','contractors'].filter(e=>lvl(e)).map(table).join('');
+ else v.innerHTML=table(t)}
+
+/* ===== الجداول ===== */
+function table(e){
+ const d=E[e],l=lvl(e);let r=rows(e);
+ if(e==='expenses'&&ef!=='all')r=r.filter(x=>x.category===ef);
+ const hasAct=l==='w'||(l==='a'&&e==='expenses');
+ const add=(l==='w'||l==='a')?`<button onclick="openForm('${e}')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl">+ إضافة ${d.t}</button>`:'';
+ const flt=e==='expenses'&&U.role!=='site'?`<select onchange="ef=this.value;go(cur)" class="in !w-auto"><option value="all">كل البنود</option>${CATS.map(c=>`<option ${c===ef?'selected':''}>${c}</option>`).join('')}</select>`:'';
+ const act=x=>{let b='';
+  if(l==='w'){
+   if(e==='expenses'&&!okE(x))b+=btn(`appr(${x.id})`,'اعتماد','bg-emerald-50 text-emerald-700');
+   if(e==='employees')b+=btn(`paySal(${x.id})`,'تسجيل الراتب كمصروف','bg-amber-50 text-amber-700');
+   b+=btn(`openForm('${e}',${x.id})`,'تعديل','bg-slate-100 text-slate-700')+btn(`del('${e}',${x.id},this)`,'حذف','bg-rose-50 text-rose-600')}
+  else if(l==='a'&&!okE(x)&&x.by==U.id)b+=btn(`del('${e}',${x.id},this)`,'حذف','bg-rose-50 text-rose-600');
+  return b};
+ return `<section class="mb-8 space-y-4"><div class="flex flex-wrap justify-between items-center gap-3"><h3 class="font-bold text-lg">${d.n}</h3><div class="flex gap-2">${flt}${add}</div></div>
+ <div class="card rounded-2xl overflow-x-auto"><table class="w-full text-right text-sm"><thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold"><tr>${d.c.map(c=>`<th class="py-3.5 px-5">${c[0]}</th>`).join('')}${hasAct?'<th class="py-3.5 px-5">إجراءات</th>':''}</tr></thead>
+ <tbody class="divide-y divide-slate-100">${r.length?r.map(x=>`<tr class="hover:bg-slate-50">${d.c.map(c=>`<td class="py-3.5 px-5">${c[1](x)}</td>`).join('')}${hasAct?`<td class="py-3.5 px-5"><div class="flex gap-1.5 flex-wrap">${act(x)}</div></td>`:''}</tr>`).join(''):`<tr><td colspan="9" class="py-8 text-center text-slate-400">لا توجد بيانات مسجلة حالياً</td></tr>`}</tbody></table></div></section>`}
+
+/* ===== لوحة التحكم ===== */
+const kpis=a=>`<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">${a.map(k=>`<div class="card rounded-2xl p-5"><p class="text-sm font-semibold text-slate-500">${k[0]}</p><p class="text-xl font-extrabold mt-3 ${k[2]}">${k[1]}</p></div>`).join('')}</div>`;
+function dash(){
+ if(U.role==='site'){
+  const p=db.projects.find(x=>x.id==U.project_id);
+  if(!p)return `<div class="card rounded-2xl p-8 text-center text-slate-500">لم يتم ربط حسابك بمشروع بعد. اطلب من المدير العام تعيين مشروعك.</div>`;
+  const x=rows('expenses');
+  return kpis([['مشروعي',esc(p.name),'text-slate-900'],['مصروفات معتمدة',money(sum(x.filter(okE))),'text-rose-600'],['قيد المراجعة',money(sum(x.filter(e=>!okE(e)))),'text-amber-600'],['عدد المقاولين',rows('contractors').length,'text-slate-900']])+
+  `<div class="card rounded-2xl p-6 mt-6"><h3 class="font-bold mb-4">توزيع مصروفات المشروع</h3><div class="h-72"><canvas id="c2"></canvas></div></div>`}
+ const R=sum(db.revenues.filter(r=>r.status!=='مستحق')),X=sum(db.expenses.filter(okE)),pend=db.expenses.filter(e=>!okE(e)).length;
+ return kpis([['إجمالي الأموال الداخلة',money(R),'text-emerald-600'],['إجمالي الأموال الخارجة',money(X),'text-rose-600'],['صافي الربح',money(R-X),'text-blue-700'],['المشاريع المسجلة',db.projects.length+(pend?` • ${pend} مصروف بانتظار الاعتماد`:''),'text-slate-900']])+
+ `<div class="grid lg:grid-cols-3 gap-6 mt-6"><div class="card rounded-2xl p-6 lg:col-span-2"><h3 class="font-bold mb-4">مقارنة الإيرادات والمصروفات حسب المشروع</h3><div class="h-72"><canvas id="c1"></canvas></div></div><div class="card rounded-2xl p-6"><h3 class="font-bold mb-4">توزيع الأموال الخارجة</h3><div class="h-72"><canvas id="c2"></canvas></div></div></div>`}
+function charts(){
+ if(!window.Chart)return;Chart.defaults.font.family='Cairo';
+ const a=$('c1'),b=$('c2'),ex=rows('expenses').filter(okE);
+ if(a){const P=db.projects,z=!P.length;
+  ch.push(new Chart(a,{type:'bar',data:{labels:z?['لا توجد مشاريع']:P.map(p=>p.name),datasets:[
+   {label:'الأموال الداخلة',data:z?[0]:P.map(p=>sum(db.revenues.filter(r=>r.project_id==p.id&&r.status!=='مستحق'))),backgroundColor:'#10B981',borderRadius:6},
+   {label:'الأموال الخارجة',data:z?[0]:P.map(p=>sum(db.expenses.filter(e=>e.project_id==p.id&&okE(e)))),backgroundColor:'#F43F5E',borderRadius:6}]},
+   options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}}))}
+ const t=CATS.map(c=>sum(ex.filter(e=>e.category===c))),has=t.some(v=>v>0);
+ ch.push(new Chart(b,{type:'doughnut',data:{labels:has?CATS:['لا توجد بيانات'],datasets:[{data:has?t:[1],backgroundColor:has?['#3B82F6','#8B5CF6','#F59E0B','#EC4899']:['#E2E8F0'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}}))}
+
+/* ===== النماذج والعمليات ===== */
+function openForm(e,id=null){
+ if(!lvl(e))return;ent=e;eid=id;
+ const d=E[e],it=id?db[e].find(x=>x.id==id):{};
+ $('mt').textContent=(id?'تعديل ':'إضافة ')+d.t;
+ $('mf').innerHTML=d.f.filter(f=>!(U.role==='site'&&f[0]==='project_id')).map(([k,l,t,x])=>{
+  const v=it[k]??'';let i;
+  if(t==='list'||t==='sel'||t==='sel0'){
+   const o=t==='list'?(U.role==='site'&&k==='category'?[CATS[0],CATS[3]]:x).map(s=>s.split('|')):db[x].map(r=>[r.id,r.name]);
+   i=`<select name="${k}" ${t==='sel0'?'':'required'} class="in"><option value="">${t==='sel0'?'— بدون —':'اختر...'}</option>${o.map(a=>`<option value="${esc(a[0])}" ${a[0]==v?'selected':''}>${esc(a[1]??a[0])}</option>`).join('')}</select>`}
+  else i=`<input type="${t}" name="${k}" value="${esc(v)}" required class="in">`;
+  return `<div><label class="block text-xs font-bold text-slate-700 mb-1">${l}</label>${i}</div>`}).join('')+
+  `<button class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm">حفظ</button>`;
+ $('modal').classList.remove('hidden');$('modal').classList.add('flex')}
+function closeM(){$('modal').classList.add('hidden');$('modal').classList.remove('flex')}
+function sub(ev){
+ ev.preventDefault();if(!lvl(ent))return;
+ const d=Object.fromEntries(new FormData(ev.target));
+ ['amount','value','salary','cost'].forEach(k=>{if(k in d)d[k]=Number(d[k])});
+ if(U.role==='site'&&ent==='expenses')d.project_id=U.project_id;
+ if(ent==='users'&&db.users.some(u=>u.username===d.username&&u.id!=eid)){toast('اسم المستخدم مستخدم بالفعل');return}
+ if(eid)Object.assign(db[ent].find(x=>x.id==eid),d);
+ else{const r={id:Date.now(),...d};if(ent==='expenses'){r.status=U.role==='site'?'قيد المراجعة':'معتمد';r.by=U.id}db[ent].push(r)}
+ save();closeM();go(cur)}
+function del(e,id,b){
+ if(!b.dataset.c){b.dataset.c=1;b.textContent='تأكيد الحذف؟';setTimeout(()=>{b.dataset.c='';b.textContent='حذف'},3000);return}
+ if((DEP[e]||[]).some(([c,k])=>db[c].some(r=>r[k]==id))){toast('لا يمكن الحذف: مرتبط ببيانات أخرى');return}
+ if(e==='users'&&id==U.id){toast('لا يمكنك حذف حسابك الحالي');return}
+ db[e]=db[e].filter(x=>x.id!=id);save();go(cur)}
+function appr(id){if(lvl('expenses')!=='w')return;db.expenses.find(x=>x.id==id).status='معتمد';save();go(cur)}
+function paySal(id){
+ const m=db.employees.find(x=>x.id==id);
+ db.expenses.push({id:Date.now(),name:'راتب '+m.name,category:'الرواتب',project_id:'',amount:m.salary,date:new Date().toISOString().slice(0,10),status:'معتمد',by:U.id});
+ save();toast('تم تسجيل راتب '+m.name+' في الأموال الخارجة')}
+
+try{const s=sessionStorage.getItem('jm_u');U=db.users.find(x=>x.id==s)||null;if(U)boot()}catch(e){}
+</script>
+</body>
+</html>
